@@ -13,7 +13,7 @@ class Command(BaseCommand):
     help = 'Create random users'
     
     def __init__(self) -> None:
-        self.driver = get_driver('119')
+        self.driver = get_driver('113')
         self.logger = LOGGER
 
     def handle(self, *args, **kwargs):
@@ -23,23 +23,23 @@ class Command(BaseCommand):
 
         self.driver.get('https://yopmail.com/en/email-generator')
         time.sleep(10)
-        aaa = self.find_element('email','egen',By.ID).get_attribute('text')
-        aaa = self.getvalue_byscript('document.querySelector("#egen").innerText')
-        print(aaa,'------------------')
+        genrated_email = self.find_element('email','egen',By.ID).get_attribute('text')
+        genrated_email = self.getvalue_byscript('document.querySelector("#egen").innerText')
+        print(genrated_email,'------------------')
 
-        input('Enter :')
+        # input('Enter :')
         time.sleep(4)
         self.new_tab('https://coinmarketcap.com/')
         self.switch_tab('-1')
         self.driver.refresh()
         user.objects.create(
             username = '''sadegadega''',
-            email = f"{aaa}"
+            email = f"{genrated_email}"
         )
 
 
         #starting to create an account
-
+        self.driver.refresh()
         # to close pop up for search suggestion if it is exists
         time.sleep(5)
         try:self.driver.execute_script("document.getElementsByClassName('HBft')[1].click()")
@@ -50,8 +50,132 @@ class Command(BaseCommand):
         time.sleep(5)
         print(windowss,'----------------------------')
         print(len(windowss),'----------------------------')
+
+        # self.driver.refresh()
+        inputs = self.driver.find_elements(By.CLASS_NAME,'dqGVRN')
+        print(inputs,'----------------------')
+        for  inp in inputs:
+            if inp.get_attribute('type') == 'email' :
+                inp.send_keys(genrated_email)
+            if inp.get_attribute('type') == 'password' :
+                inp.send_keys(str(genrated_email).capitalize())
+                
+        random_sleep()
+        self.click_element('create an account btn','dKttWP',By.CLASS_NAME) # click create an account btn
+
+        # captcha is going to solve here
+
+        input('Enter :')
+        # --------------------------------------------
+        self.driver.refresh()
+        self.click_element('signup btn','//*[@id="__next"]/div/div[1]/div[1]/div[1]/div/div[1]/div/div[3]/button[2]',By.XPATH)
+        windowss = self.driver.window_handles
+        time.sleep(5)
+        print(windowss,'----------------------------')
+        print(len(windowss),'----------------------------')
+
+        # self.driver.refresh()
+        inputs = self.driver.find_elements(By.CLASS_NAME,'dqGVRN')
+        print(inputs,'----------------------')
+        for  inp in inputs:
+            if inp.get_attribute('type') == 'email' :
+                inp.send_keys(genrated_email)
+            if inp.get_attribute('type') == 'password' :
+                inp.send_keys(str(genrated_email).capitalize())
+                
+        random_sleep()
+        self.click_element('create an account btn','dKttWP',By.CLASS_NAME) # click create an account btn
+
+        # captcha is going to solve here
+
+        input('Enter :')
+        # --------------------------------------------
+
+        
+
+
+
+
+        self.switch_tab(0)
+        self.driver.refresh()
+        self.driver.get('https://yopmail.com/en/')
+
+        self.input_text(genrated_email,'get email inbox input','ycptinput',By.CLASS_NAME)
+        self.click_element('go to email inboc btn','refreshbut',By.ID)
+        self.click_element('go to email inboc btn2','//*[@id="refreshbut"]/button',By.XPATH)
+
+
+        # sqwitch to email box I-framework
+        for i in range(5):
+            inbox_ifram = self.find_element('if inbox iframe','ifinbox',By.ID)
+            if inbox_ifram :
+                self.driver.switch_to.frame(inbox_ifram)
+                break
+
+        # find coin market email from inbox
+        all_emails_div = self.driver.find_elements(By.CLASS_NAME,'m')
+        for emails_div in all_emails_div :
+            email_sender = emails_div.find_element(By.CLASS_NAME,'lmf')
+            if 'coinmarketcap'in str(email_sender).lower() :
+                emails_div.find_element(By.CLASS_NAME,'lm').click()
+
+        # switch to email content i-framwork
+        random_sleep(4,8)
+        for i in range(5):
+            inbox_ifram = self.find_element('if email content iframe','ifmail',By.ID)
+            if inbox_ifram :
+                self.driver.switch_to.frame(inbox_ifram)
+                break
+
+        # open up email and get verification code
+        verification_code = self.find_element("genrated email's verification code",'//*[@id="mail"]/div/div/table/tbody/tr/td/table[2]/tbody/tr/td/table/tbody/tr/td/table/tbody/tr[1]/td/table/tbody/tr[10]/td/h1',By.XPATH)
+        try:
+            verification_code = int(verification_code)
+        except Exception as e: print(e)
+
+
+
+        # switch to coin market tab and open verification code inputs
+        self.switch_tab(1)
+        self.click_element('open verification inputs','ijUBDg ',By.CLASS_NAME)
+
+
+        # enter verification code
+        all_verification_inputs = self.driver.find_elements(By.CLASS_NAME,'bCRBAJ')[0]
+        if len(verification_code) == len(all_verification_inputs):
+            for (inputs,code) in zip(all_verification_inputs,verification_code) :
+                inputs.send_keys(code)
+                time.sleep(0.3)
+        
+        random_sleep(5,8)
+        self.driver.refresh()
+
+
+
+        
+
+            
+        
+
+        
+
+
+
+
+        # allemails_sendername = self.driver.find_elements(By.CLASS_NAME,'lmfd')
+        # for sendername in allemails_sendername :
+        #     if 'coinmarketcap'in str(sendername).lower() :
+
+
+
+
+
+
+
         input('Enter :')
         self.driver.quit()
+
+    
 
     def switch_tab(self,index=0,**link):
         self.driver.switch_to.window(self.driver.window_handles[int(index)]) 
@@ -83,21 +207,21 @@ class Command(BaseCommand):
                         condition_func((locator_type, locator),
                             *condition_other_args))
             else:
-                self.logger.debug(f'Timeout is less or equal zero: {timeout}')
+                print(f'Timeout is less or equal zero: {timeout}')
                 ele = self.driver.find_element(by=locator_type, 
                         value=locator)
             if page:
-                self.logger.debug(
+                print(
                         f'Found the element "{element}" in the page "{page}"')
             else:
-                self.logger.debug(f'Found the element: {element}')
+                print(f'Found the element: {element}')
             return ele
         except (NoSuchElementException, TimeoutException) as e:
             if page:
-                self.logger.debug(f'Cannot find the element "{element}"'
+                print(f'Cannot find the element "{element}"'
                         f' in the page "{page}"')
             else:
-                self.logger.debug(f'Cannot find the element: {element}')
+                print(f'Cannot find the element: {element}')
             
             return False
 
@@ -110,7 +234,7 @@ class Command(BaseCommand):
             ele = self.find_element(element, locator, locator_type, timeout=timeout,page=page)
             if ele:
                 ele.click()
-                LOGGER.debug(f'Clicked the element: {element}')
+                print(f'Clicked the element: {element}')
                 return ele
 
             else:return False
@@ -128,10 +252,10 @@ class Command(BaseCommand):
             if ele:
                 ele.clear()
                 ele.send_keys(text)
-                self.logger.debug(f'Inputed "{text}" for the element: {element}')
+                print(f'Inputed "{text}" for the element: {element}')
                 return ele
         except Exception as e :
-            self.logger.info(f'Got an error in input text :{element} {e}')
+            print(f'Got an error in input text :{element} {e}')
             
             return False
 
@@ -178,6 +302,11 @@ class Command(BaseCommand):
             self.driver.find_element(By.CLASS_NAME,'disconnected').click()
         except Exception as e:print(e)
 
+def random_sleep(min_sleep_time=1, max_sleep_time=4):
+    sleep_time = random.randint(min_sleep_time, max_sleep_time)
+    LOGGER.debug(f'Random sleep: {sleep_time}')
+    time.sleep(sleep_time)
+
 def get_driver(profile_dir='profile_dir'):
     from selenium import webdriver
     from webdriver_manager.chrome import ChromeDriverManager
@@ -185,22 +314,22 @@ def get_driver(profile_dir='profile_dir'):
 
     # options.add_extension("CyberGhost_VPN.crx")#crx file path
     options.add_argument('--no-sandbox')
-    # options.add_argument('--autoplay-policy=no-user-gesture-required')
+    options.add_argument('--autoplay-policy=no-user-gesture-required')
     options.add_argument('--start-maximized')    
     # options.add_argument('--single-process')
-    # options.add_argument('--disable-dev-shm-usage')
-    # options.add_argument("--disable-blink-features")
-    # options.add_argument("--ignore-certificate-errors")
+    options.add_argument('--disable-dev-shm-usage')
+    options.add_argument("--disable-blink-features")
+    options.add_argument("--ignore-certificate-errors")
     options.add_argument("--enable-javascript")
-    # options.add_argument("--disable-notifications")
+    options.add_argument("--disable-notifications")
     options.add_argument('--disable-blink-features=AutomationControlled')
     options.add_argument("--enable-popup-blocking")
-    # options.add_argument("--ignore-certificate-errors-spki-list")
-    # options.add_argument("--ignore-certificate-errors")
-    # options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36")
-    # options.add_extension(os.path.join(BASE_DIR, "Stay-secure-with-CyberGhost-VPN-Free-Proxy.crx"))
-    # options.add_argument(f'--user-data-dir={os.path.join(BASE_DIR, "profiles")}')
-    # options.add_argument(f"--profile-directory={profile_dir}")
+    options.add_argument("--ignore-certificate-errors-spki-list")
+    options.add_argument("--ignore-certificate-errors")
+    options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36")
+    options.add_extension(os.path.join(BASE_DIR, "Stay-secure-with-CyberGhost-VPN-Free-Proxy.crx"))
+    options.add_argument(f'--user-data-dir={os.path.join(BASE_DIR, "profiles")}')
+    options.add_argument(f"--profile-directory={profile_dir}")
     driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
     # driver = webdriver.Chrome(executable_path='chromedriver.exe', options=options)
 
